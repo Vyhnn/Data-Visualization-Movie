@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Movie Box Office — The Numbers Don’t Lie</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+    <script defer src="charts.js"></script>
+</head>
+<body>
+    <main>
+        <header>
+            <div class="header">
+                <div class="title">
+                <h1><span>“The Numbers”</span> Don’t Lie,</h1>
+                <h1>But They May Misdirect</h1>
+            </div>
+            <h2>How box office numbers can create misinformed impressions of success</h2>
+            <h3>By Connor Bayers and Vincent Li</h3>
+            </div>
+        </header>
+
+        <section class="section" id="section-1">
+            <h2>How do we measure the success of a movie?</h2>
+            <h2>Box Office Number?</h2>
+            <div class="news-images">
+                <img src="news-1.png" alt="News coverage about movie box office records">
+                <img src="news-2.png" alt="News coverage about movie box office records">
+            </div>
+        </section>
+
+        <section class="section chart-section" id="section-2">
+            <h2>Cumulative Worldwide Box Office Numbers (as of 2024)</h2>
+            <p>Top ten movies by raw worldwide box office.</p>
+            <div class="graph" id="graph-1" role="img" aria-label="Cumulative worldwide box office numbers as of 2024">
+                Loading chart…
+            </div>
+        </section>
+
+        <section class="section chart-section" id="section-3">
+            <h2>Cumulative Worldwide Box Office Numbers (as of 2024), Adjusted for Inflation</h2>
+            <p>Inflation-adjusted worldwide box office for the top ten movies.</p>
+            <div class="graph" id="graph-2" role="img" aria-label="Cumulative worldwide box office numbers as of 2024, adjusted for inflation">
+                Loading chart…
+            </div>
+        </section>
+
+        <section class="section chart-section" id="section-4">
+            <h2>Worldwide Box Office Numbers as a Ratio over Production Budget</h2>
+            <p>Worldwide box office divided by production budget for the top ten movies.</p>
+            <div class="graph" id="graph-3" role="img" aria-label="Worldwide box office numbers as a ratio over production budget">
+                Loading chart…
+            </div>
+        </section>
+
+        <section class="section chart-section" id="section-5">
+            <h2>Top movies by genre</h2>
+            <p>Select one or more genres to see their top ten movies; colors identify each genre.</p>
+            <div class="metric-controls genre-controls" id="genre-controls" role="group" aria-label="Select one or more movie genres">
+                Loading genres…
+            </div>
+            <p class="chart-caption" id="genre-caption" aria-live="polite">
+                Top ten movies by worldwide box office
+            </p>
+            <div class="genre-legend" id="genre-legend" role="list" aria-label="Genres shown in the chart"></div>
+            <div class="graph" id="graph-4" role="img" aria-label="Top ten movies across the selected genres by worldwide box office">
+                Loading chart…
+            </div>
+        </section>
+
+        <section class="section chart-section" id="section-6">
+            <h2>How does the ranking change with the measure?</h2>
+            <p>Select a metric and one or more genres. Shared bars move to their new ranking.</p>
+            <div class="metric-controls" role="group" aria-label="Choose a movie ranking metric">
+                <button class="metric-button is-active" type="button" data-metric="worldwide" aria-pressed="true">
+                    Raw box office
+                </button>
+                <button class="metric-button" type="button" data-metric="inflation" aria-pressed="false">
+                    Inflation-adjusted
+                </button>
+                <button class="metric-button" type="button" data-metric="budget" aria-pressed="false">
+                    Box office-to-budget ratio
+                </button>
+            </div>
+            <div class="metric-controls genre-controls" id="ranking-genre-controls" role="group" aria-label="Select one or more genres for the ranking chart">
+                Loading genres…
+            </div>
+            <p class="chart-caption" id="ranking-caption" aria-live="polite">
+                Top ten by worldwide box office
+            </p>
+            <div class="genre-legend" id="ranking-genre-legend" role="list" aria-label="Genres shown in the ranking chart"></div>
+            <div class="graph" id="graph-5" role="img" aria-label="Interactive top ten movie ranking">
+                Loading chart…
+            </div>
+        </section>
+    </main>
+</body>
+</html>
