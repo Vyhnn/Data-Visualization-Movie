@@ -276,26 +276,43 @@ function createMovieRankingChart(elementId, movies, sharedDomains) {
     const margin = { top: 20, right: 24, bottom: 180, left: 88 };
     const innerWidth = width - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
-    const metrics = {
+    const markets = {
+        domestic: {
+            label: "domestic",
+            axisLabelPrefix: "Domestic",
+            fields: {
+                raw: "Domestic Box Office (USD)",
+                inflation: "Infl. Adj. Dom. BO (USD)",
+                budget: "Dom. BO by Budget"
+            }
+        },
         worldwide: {
-            field: "Worldwide Box Office (USD)",
-            label: "worldwide box office",
+            label: "worldwide",
+            axisLabelPrefix: "Worldwide",
+            fields: {
+                raw: "Worldwide Box Office (USD)",
+                inflation: "Infl. Adj. WW BO (USD)",
+                budget: "WW BO by Budget"
+            }
+        }
+    };
+    const measures = {
+        raw: {
+            label: "box office",
             axisLabel: "Box Office Earnings (USD)",
             format: formatMoney,
             formatValue: formatExactMoney,
             domainMax: sharedDomains.usd
         },
         inflation: {
-            field: "Infl. Adj. WW BO (USD)",
-            label: "inflation-adjusted worldwide box office",
-            axisLabel: "Adjusted Box Office Earnings (USD)",
+            label: "inflation-adjusted box office",
+            axisLabel: "Inflation-Adjusted Box Office Earnings (USD)",
             format: formatMoney,
             formatValue: formatExactMoney,
             domainMax: sharedDomains.usd
         },
         budget: {
-            field: "WW BO by Budget",
-            label: "worldwide box office-to-budget ratio",
+            label: "box office-to-budget ratio",
             axisLabel: "Box Office Earnings over Production Budget",
             format: (value) => `${d3.format(".2~f")(value)}×`,
             formatValue: formatExactRatio,
@@ -328,33 +345,35 @@ function createMovieRankingChart(elementId, movies, sharedDomains) {
         .attr("y", height - 8)
         .text("Movie Title");
 
-    let selectedMetric = "worldwide";
+    let selectedMarket = "worldwide";
+    let selectedMeasure = "raw";
 
-    function update(metricKey, animate) {
-        selectedMetric = metricKey;
-        const metric = metrics[metricKey];
+    function update(animate) {
+        const market = markets[selectedMarket];
+        const measure = measures[selectedMeasure];
+        const field = market.fields[selectedMeasure];
         const data = movies
             .filter((movie) =>
                 (availableGenres.length === 0 || selectedGenres.has(movie.Genre?.trim())) &&
-                Number.isFinite(movie[metric.field]) &&
-                (metricKey !== "budget" || movie[metric.field] > 0)
+                Number.isFinite(movie[field]) &&
+                (selectedMeasure !== "budget" || movie[field] > 0)
             )
-            .sort((a, b) => d3.descending(a[metric.field], b[metric.field]))
+            .sort((a, b) => d3.descending(a[field], b[field]))
             .slice(0, 10)
             .map((movie) => ({
                 label: movie["Movie Name"],
-                value: movie[metric.field],
+                value: movie[field],
                 genre: movie.Genre?.trim()
             }));
 
         setMovieBandScale(x, data, innerWidth);
-        y.domain([0, metric.domainMax]).nice();
+        y.domain([0, measure.domainMax]).nice();
 
         const transition = animate
             ? svg.transition().duration(1000).ease(d3.easeCubicInOut)
             : null;
         const gridAxis = d3.axisLeft(y).ticks(5).tickSize(-innerWidth).tickFormat(() => "");
-        const valueAxis = d3.axisLeft(y).ticks(5).tickFormat(metric.format);
+        const valueAxis = d3.axisLeft(y).ticks(5).tickFormat(measure.format);
         const categoryAxis = d3.axisBottom(x);
 
         if (transition) {
@@ -372,7 +391,7 @@ function createMovieRankingChart(elementId, movies, sharedDomains) {
             .attr("transform", "rotate(-50)")
             .attr("dx", "-0.65em")
             .attr("dy", "0.15em");
-        axisLabel.text(metric.axisLabel);
+        axisLabel.text(`${market.axisLabelPrefix} ${measure.axisLabel}`);
 
         const bars = chart.selectAll(".movie-bar")
             .data(data, (row) => row.label);
@@ -390,8 +409,8 @@ function createMovieRankingChart(elementId, movies, sharedDomains) {
 
         merged.style("fill", (row) => genreColor(row.genre));
         merged.select("title")
-            .text((row) => `${row.label}: ${metric.formatValue(row.value)}`);
-        addBarHover(merged, chart, xAxis, x, y, metric.formatValue);
+            .text((row) => `${row.label}: ${measure.formatValue(row.value)}`);
+        addBarHover(merged, chart, xAxis, x, y, measure.formatValue);
 
         if (transition) {
             bars.exit()
@@ -419,10 +438,10 @@ function createMovieRankingChart(elementId, movies, sharedDomains) {
         renderGenreLegend(genreLegend, data, genreColor);
 
         const chartDescription = availableGenres.length === 0
-            ? `Top ten by ${metric.label}`
+            ? `Top ten by ${market.label} ${measure.label}`
             : selectedGenres.size > 0
-                ? `Top ten by ${metric.label} across ${selectedGenres.size} selected genre${selectedGenres.size === 1 ? "" : "s"}`
-                : `Select one or more genres to view the top ten by ${metric.label}`;
+                ? `Top ten by ${market.label} ${measure.label} across ${selectedGenres.size} selected genre${selectedGenres.size === 1 ? "" : "s"}`
+                : `Select one or more genres to view the top ten by ${market.label} ${measure.label}`;
         document.getElementById("ranking-caption").textContent = chartDescription;
         container.attr("aria-label", chartDescription);
     }
@@ -432,25 +451,38 @@ function createMovieRankingChart(elementId, movies, sharedDomains) {
         availableGenres,
         selectedGenres,
         genreColor,
-        () => update(selectedMetric, true)
+        () => update(true)
     );
 
-    const buttons = d3.selectAll(".metric-button[data-metric]");
-    buttons.on("click", function() {
+    const marketButtons = d3.selectAll(".metric-button[data-market]");
+    marketButtons.on("click", function() {
         const selectedButton = this;
-        const metricKey = this.dataset.metric;
-        if (this.getAttribute("aria-pressed") === "true") return;
-        buttons
+        const marketKey = this.dataset.market;
+        if (marketKey === selectedMarket) return;
+        selectedMarket = marketKey;
+        marketButtons
             .classed("is-active", function() { return this === selectedButton; })
             .attr("aria-pressed", function() { return this === selectedButton ? "true" : "false"; });
-        update(metricKey, true);
+        update(true);
     });
 
-    update("worldwide", false);
+    const measureButtons = d3.selectAll(".metric-button[data-measure]");
+    measureButtons.on("click", function() {
+        const selectedButton = this;
+        const measureKey = this.dataset.measure;
+        if (measureKey === selectedMeasure) return;
+        selectedMeasure = measureKey;
+        measureButtons
+            .classed("is-active", function() { return this === selectedButton; })
+            .attr("aria-pressed", function() { return this === selectedButton ? "true" : "false"; });
+        update(true);
+    });
+
+    update(false);
     revealBarsWhenSectionVisible(container);
 }
 
-function createGenreChart(movies, sharedUsdDomainMax) {
+function createGenreChart(movies, sharedBudgetRatioMax) {
     const container = d3.select("#graph-4");
     const genreControls = d3.select("#genre-controls");
     const genreLegend = d3.select("#genre-legend");
@@ -492,7 +524,7 @@ function createGenreChart(movies, sharedUsdDomainMax) {
         .attr("class", "axis-label")
         .attr("text-anchor", "middle")
         .attr("transform", `translate(20,${margin.top + innerHeight / 2}) rotate(-90)`)
-        .text("Box Office Earnings (USD)");
+        .text("Worldwide Box Office over Production Budget");
     svg.append("text")
         .attr("class", "axis-label")
         .attr("text-anchor", "middle")
@@ -504,29 +536,28 @@ function createGenreChart(movies, sharedUsdDomainMax) {
         const data = movies
             .filter((movie) =>
                 selectedGenres.has(movie.Genre?.trim()) &&
-                Number.isFinite(movie["Worldwide Box Office (USD)"])
+                Number.isFinite(movie["WW BO by Budget"]) &&
+                movie["WW BO by Budget"] > 0
             )
             .sort((a, b) =>
-                d3.descending(
-                    a["Worldwide Box Office (USD)"],
-                    b["Worldwide Box Office (USD)"]
-                )
+                d3.descending(a["WW BO by Budget"], b["WW BO by Budget"])
             )
             .slice(0, 10)
             .map((movie) => ({
                 label: movie["Movie Name"],
-                value: movie["Worldwide Box Office (USD)"],
+                value: movie["WW BO by Budget"],
                 genre: movie.Genre.trim()
             }));
 
         setMovieBandScale(x, data, innerWidth);
-        y.domain([0, sharedUsdDomainMax]).nice();
+        y.domain([0, sharedBudgetRatioMax]).nice();
 
         const transition = animate
             ? svg.transition().duration(1000).ease(d3.easeCubicInOut)
             : null;
         const gridAxis = d3.axisLeft(y).ticks(5).tickSize(-innerWidth).tickFormat(() => "");
-        const valueAxis = d3.axisLeft(y).ticks(5).tickFormat(formatMoney);
+        const valueAxis = d3.axisLeft(y).ticks(5)
+            .tickFormat((value) => `${d3.format(".2~f")(value)}×`);
         const categoryAxis = d3.axisBottom(x);
 
         if (transition) {
@@ -561,8 +592,8 @@ function createGenreChart(movies, sharedUsdDomainMax) {
 
         merged.style("fill", (row) => genreColor(row.genre));
         merged.select("title")
-            .text((row) => `${row.label}: ${formatExactMoney(row.value)}`);
-        addBarHover(merged, chart, xAxis, x, y, formatExactMoney);
+            .text((row) => `${row.label}: ${formatExactRatio(row.value)}`);
+        addBarHover(merged, chart, xAxis, x, y, formatExactRatio);
 
         if (transition) {
             bars.exit()
@@ -596,8 +627,8 @@ function createGenreChart(movies, sharedUsdDomainMax) {
         renderGenreLegend(genreLegend, data, genreColor);
 
         const chartDescription = selectedGenres.size > 0
-            ? `Top ten movies across ${selectedGenres.size} selected genre${selectedGenres.size === 1 ? "" : "s"} by worldwide box office`
-            : "Select one or more genres to display the top ten movies by worldwide box office";
+            ? `Top ten movies across ${selectedGenres.size} selected genre${selectedGenres.size === 1 ? "" : "s"} by box office-to-budget ratio`
+            : "Select one or more genres to display the top ten movies by box office-to-budget ratio";
         document.getElementById("genre-caption").textContent = chartDescription;
         container.attr("aria-label", chartDescription);
     }
@@ -640,7 +671,9 @@ async function loadCharts() {
         .map(calculateMovieMetrics);
     const usdScaleMax = d3.max(
         movies.flatMap((movie) => [
+            movie["Domestic Box Office (USD)"],
             movie["Worldwide Box Office (USD)"],
+            movie["Infl. Adj. Dom. BO (USD)"],
             movie["Infl. Adj. WW BO (USD)"]
         ]).filter(Number.isFinite)
     );
@@ -660,13 +693,20 @@ async function loadCharts() {
         .slice(0, 10)
         .map((movie) => ({ label: movie["Movie Name"], value: movie[field] }));
 
+    renderBarChart("graph-domestic", topMovies("Domestic Box Office (USD)"), {
+        xLabel: "Movie Title",
+        yLabel: "Domestic Box Office Earnings (USD)",
+        formatAxis: formatMoney,
+        formatValue: formatExactMoney,
+        formatTooltip: (row) => `${row.label}: ${formatExactMoney(row.value)}`
+    });
+
     renderBarChart("graph-1", topMovies("Worldwide Box Office (USD)"), {
         xLabel: "Movie Title",
         yLabel: "Box Office Earnings (USD)",
         formatAxis: formatMoney,
         formatValue: formatExactMoney,
-        formatTooltip: (row) => `${row.label}: ${formatExactMoney(row.value)}`,
-        domainMax: usdScaleMax
+        formatTooltip: (row) => `${row.label}: ${formatExactMoney(row.value)}`
     });
 
     renderBarChart("graph-2", topMovies("Infl. Adj. WW BO (USD)"), {
@@ -674,8 +714,7 @@ async function loadCharts() {
         yLabel: "Adjusted Box Office Earnings (USD)",
         formatAxis: formatMoney,
         formatValue: formatExactMoney,
-        formatTooltip: (row) => `${row.label}: ${formatExactMoney(row.value)}`,
-        domainMax: usdScaleMax
+        formatTooltip: (row) => `${row.label}: ${formatExactMoney(row.value)}`
     });
 
     renderBarChart("graph-3", topMovies("WW BO by Budget", true), {
@@ -683,11 +722,10 @@ async function loadCharts() {
         yLabel: "Box Office Earnings over Production Budget",
         formatAxis: (value) => `${d3.format(".2~f")(value)}×`,
         formatValue: formatExactRatio,
-        formatTooltip: (row) => `${row.label}: ${formatExactRatio(row.value)} budget`,
-        domainMax: budgetRatioScaleMax
+        formatTooltip: (row) => `${row.label}: ${formatExactRatio(row.value)} budget`
     });
 
-    createGenreChart(movies, usdScaleMax);
+    createGenreChart(movies, budgetRatioScaleMax);
     createMovieRankingChart("graph-5", movies, {
         usd: usdScaleMax,
         budgetRatio: budgetRatioScaleMax

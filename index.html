@@ -34,6 +34,14 @@
         </section>
 
         <section class="section chart-section" id="section-2">
+            <h2>Cumulative Domestic Box Office Numbers (as of 2024)</h2>
+            <p>Top ten movies by domestic box office.</p>
+            <div class="graph" id="graph-domestic" role="img" aria-label="Top ten movies by domestic box office as of 2024">
+                Loading chart…
+            </div>
+        </section>
+
+        <section class="section chart-section" id="section-3">
             <h2>Cumulative Worldwide Box Office Numbers (as of 2024)</h2>
             <p>Top ten movies by raw worldwide box office.</p>
             <div class="graph" id="graph-1" role="img" aria-label="Cumulative worldwide box office numbers as of 2024">
@@ -41,7 +49,7 @@
             </div>
         </section>
 
-        <section class="section chart-section" id="section-3">
+        <section class="section chart-section" id="section-4">
             <h2>Cumulative Worldwide Box Office Numbers (as of 2024), Adjusted for Inflation</h2>
             <p>Inflation-adjusted worldwide box office for the top ten movies.</p>
             <div class="graph" id="graph-2" role="img" aria-label="Cumulative worldwide box office numbers as of 2024, adjusted for inflation">
@@ -49,7 +57,7 @@
             </div>
         </section>
 
-        <section class="section chart-section" id="section-4">
+        <section class="section chart-section" id="section-5">
             <h2>Worldwide Box Office Numbers as a Ratio over Production Budget</h2>
             <p>Worldwide box office divided by production budget for the top ten movies.</p>
             <div class="graph" id="graph-3" role="img" aria-label="Worldwide box office numbers as a ratio over production budget">
@@ -57,32 +65,40 @@
             </div>
         </section>
 
-        <section class="section chart-section" id="section-5">
+        <section class="section chart-section" id="section-6">
             <h2>Top movies by genre</h2>
-            <p>Select one or more genres to see their top ten movies; colors identify each genre.</p>
+            <p>Select one or more genres to see their top ten movies by box office-to-budget ratio; colors identify each genre.</p>
             <div class="metric-controls genre-controls" id="genre-controls" role="group" aria-label="Select one or more movie genres">
                 Loading genres…
             </div>
             <p class="chart-caption" id="genre-caption" aria-live="polite">
-                Top ten movies by worldwide box office
+                Top ten movies by box office-to-budget ratio
             </p>
             <div class="genre-legend" id="genre-legend" role="list" aria-label="Genres shown in the chart"></div>
-            <div class="graph" id="graph-4" role="img" aria-label="Top ten movies across the selected genres by worldwide box office">
+            <div class="graph" id="graph-4" role="img" aria-label="Top ten movies across the selected genres by box office-to-budget ratio">
                 Loading chart…
             </div>
         </section>
 
-        <section class="section chart-section" id="section-6">
+        <section class="section chart-section" id="section-7">
             <h2>How does the ranking change with the measure?</h2>
-            <p>Select a metric and one or more genres. Shared bars move to their new ranking.</p>
-            <div class="metric-controls" role="group" aria-label="Choose a movie ranking metric">
-                <button class="metric-button is-active" type="button" data-metric="worldwide" aria-pressed="true">
+            <p>Choose a box-office market and measure, then select one or more genres. Shared bars move to their new ranking.</p>
+            <div class="metric-controls" role="group" aria-label="Choose a box-office market">
+                <button class="metric-button" type="button" data-market="domestic" aria-pressed="false">
+                    Domestic
+                </button>
+                <button class="metric-button is-active" type="button" data-market="worldwide" aria-pressed="true">
+                    Worldwide
+                </button>
+            </div>
+            <div class="metric-controls" role="group" aria-label="Choose a box-office measure">
+                <button class="metric-button is-active" type="button" data-measure="raw" aria-pressed="true">
                     Raw box office
                 </button>
-                <button class="metric-button" type="button" data-metric="inflation" aria-pressed="false">
+                <button class="metric-button" type="button" data-measure="inflation" aria-pressed="false">
                     Inflation-adjusted
                 </button>
-                <button class="metric-button" type="button" data-metric="budget" aria-pressed="false">
+                <button class="metric-button" type="button" data-measure="budget" aria-pressed="false">
                     Box office-to-budget ratio
                 </button>
             </div>
