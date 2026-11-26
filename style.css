@@ -102,6 +102,11 @@ main > header {
     margin: 4px 0 6px;
 }
 
+#section-7 .metric-controls:not(.genre-controls) .metric-button {
+    padding: 8px 14px;
+    font-size: 16px;
+}
+
 .section.chart-section .genre-controls {
     padding-bottom: 4px;
 }
