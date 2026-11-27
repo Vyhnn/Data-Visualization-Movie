@@ -7,6 +7,7 @@ const formatMoney = (value) => {
 
 const formatExactMoney = (value) => d3.format("$,.0f")(value);
 const formatExactRatio = (value) => `${d3.format(",.6~f")(value)}×`;
+const titanicBarColor = "#1f5a3a";
 
 const divideByPositive = (numerator, denominator) =>
     Number.isFinite(numerator) &&
@@ -86,31 +87,61 @@ function createGenreButtons(controls, genres, selectedGenres, genreColor, onChan
     }
 
     controls.text(null);
-    const buttons = controls.selectAll("button")
+    const genreOptions = controls.append("div")
+        .attr("class", "genre-options");
+    const selectAllButton = genreOptions.append("button")
+        .attr("type", "button")
+        .attr("class", "metric-button genre-action-button")
+        .text("Select all");
+    const buttons = genreOptions.selectAll(".genre-option")
         .data(genres)
         .join("button")
         .attr("type", "button")
-        .attr("class", (genre) =>
-            selectedGenres.has(genre) ? "metric-button is-active" : "metric-button"
-        )
+        .attr("class", "metric-button genre-option")
         .style("--genre-color", (genre) => genreColor(genre))
         .attr("aria-pressed", (genre) =>
             selectedGenres.has(genre) ? "true" : "false"
         )
-        .text((genre) => genre)
-        .on("click", (_, selectedGenre) => {
-            if (selectedGenres.has(selectedGenre)) {
-                selectedGenres.delete(selectedGenre);
-            } else {
-                selectedGenres.add(selectedGenre);
-            }
-            buttons
-                .classed("is-active", (genre) => selectedGenres.has(genre))
-                .attr("aria-pressed", (genre) =>
-                    selectedGenres.has(genre) ? "true" : "false"
-                );
-            onChange();
-        });
+        .text((genre) => genre);
+    const clearButton = genreOptions.append("button")
+        .attr("type", "button")
+        .attr("class", "metric-button genre-action-button")
+        .attr("aria-label", "Clear all genres");
+    clearButton.append("span")
+        .attr("aria-hidden", "true")
+        .attr("class", "clear-icon")
+        .text("×");
+    clearButton.append("span").text("Clear");
+
+    const updateButtonStates = () => {
+        buttons
+            .classed("is-active", (genre) => selectedGenres.has(genre))
+            .attr("aria-pressed", (genre) =>
+                selectedGenres.has(genre) ? "true" : "false"
+            );
+    };
+    updateButtonStates();
+
+    selectAllButton.on("click", () => {
+        genres.forEach((genre) => selectedGenres.add(genre));
+        updateButtonStates();
+        onChange();
+    });
+    clearButton.on("click", () => {
+        selectedGenres.clear();
+        updateButtonStates();
+        onChange();
+    });
+
+    buttons.on("click", (_, selectedGenre) => {
+        if (selectedGenres.has(selectedGenre)) {
+            selectedGenres.delete(selectedGenre);
+        } else {
+            selectedGenres.add(selectedGenre);
+        }
+        updateButtonStates();
+        onChange();
+    });
 }
 
 function renderGenreLegend(legend, data, genreColor) {
@@ -229,7 +260,7 @@ function renderBarChart(elementId, data, options) {
     const bars = chart.selectAll(".bar")
         .data(data)
         .join("rect")
-        .attr("class", "bar")
+        .attr("class", (row) => row.label === "Titanic" ? "bar is-titanic" : "bar")
         .attr("x", (row) => x(row.label))
         .attr("y", (row) => y(row.value))
         .attr("width", x.bandwidth())
@@ -590,7 +621,11 @@ function createGenreChart(movies, sharedBudgetRatioMax) {
 
         const merged = entering.merge(bars);
 
-        merged.style("fill", (row) => genreColor(row.genre));
+        merged
+            .classed("is-titanic", (row) => row.label === "Titanic")
+            .style("fill", (row) =>
+                row.label === "Titanic" ? titanicBarColor : genreColor(row.genre)
+            );
         merged.select("title")
             .text((row) => `${row.label}: ${formatExactRatio(row.value)}`);
         addBarHover(merged, chart, xAxis, x, y, formatExactRatio);

@@ -175,12 +175,24 @@ main > header {
     padding: 2px 2px 8px;
 }
 
+.genre-options {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+    gap: 10px;
+}
+
 .genre-controls .metric-button {
     padding: 5px 10px;
     font-size: clamp(12px, 1.4vh, 15px);
 }
 
-.genre-controls .metric-button::before {
+.genre-action-button .clear-icon {
+    margin-right: 4px;
+}
+
+.genre-controls .genre-option::before {
     display: inline-block;
     width: 9px;
     height: 9px;
@@ -278,6 +290,14 @@ main > header {
 
 .bar {
     fill: #b3181c;
+}
+
+.bar.is-titanic {
+    fill: #1f5a3a;
+}
+
+.bar.is-titanic:hover {
+    fill: #16442b;
 }
 
 .bar-value {
